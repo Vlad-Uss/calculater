@@ -19,7 +19,7 @@ public class NumberService {
             type = NumberType.ROMAN;
         } else {
             type = NumberType.ARABIC;
-            value = Integer.parseInt(symbol);
+            value = toArabicNumber(symbol);
         }
 
         if (value < 1 || value > 10) {
@@ -43,14 +43,9 @@ public class NumberService {
 
         TreeMap<Integer, String> romanMap = new TreeMap<>();
         romanMap.put(1, "I");
-        romanMap.put(2, "II");
-        romanMap.put(3, "III");
         romanMap.put(4, "IV");
         romanMap.put(5, "V");
-        romanMap.put(6, "VI");
-        romanMap.put(7, "VII");
-        romanMap.put(8, "VIII");
-        romanMap.put(9, "XI");
+        romanMap.put(9, "IX");
         romanMap.put(10, "X");
         romanMap.put(40, "XL");
         romanMap.put(50, "L");
@@ -69,5 +64,24 @@ public class NumberService {
             return romanMap.get(number);
         }
         return romanMap.get(i) + toRomanNumber(number - i);
+    }
+
+    public static int toArabicNumber(String roman) throws Exception {
+        int result = 0;
+
+        TreeMap<Integer, String> romanMap = getRomanMap();
+
+        for (Map.Entry<Integer, String> entry : romanMap.entrySet()) {
+            if (roman.startsWith(entry.getValue())) {
+                result += entry.getKey();
+                roman = roman.substring(entry.getValue().length());
+            }
+        }
+
+        if (roman.length() > 0) {
+            throw new Exception(roman + " cannot be converted to a Roman");
+        }
+
+        return result;
     }
 }
