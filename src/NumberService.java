@@ -1,47 +1,11 @@
 import java.util.Map;
 import java.util.TreeMap;
 
-public class NumberService {
+class NumberService {
 
-    public static Number parseAndValidate(String symbol) throws Exception {
+    private final static TreeMap<Integer, String> romanMap = new TreeMap<>();
 
-        int value = -1;
-        NumberType type;
-
-        for (Map.Entry<Integer, String> entry : getRomanMap().entrySet()) {
-            if (symbol.equals(entry.getValue())) {
-                value = entry.getKey();
-                break;
-            }
-        }
-
-        if (value != -1) {
-            type = NumberType.ROMAN;
-        } else {
-            type = NumberType.ARABIC;
-            value = toArabicNumber(symbol);
-        }
-
-        if (value < 1 || value > 10) {
-            throw new Exception("Value is not true");
-        }
-
-        return new Number(value, type);
-    }
-
-    public static Number parseAndValidate(String symbol, NumberType type) throws Exception {
-
-        Number number = parseAndValidate(symbol);
-        if (number.getType() != type) {
-            throw new Exception("numbers of different types");
-        }
-
-        return number;
-    }
-
-    public static TreeMap<Integer, String> getRomanMap() {
-
-        TreeMap<Integer, String> romanMap = new TreeMap<>();
+    static {
         romanMap.put(1, "I");
         romanMap.put(4, "IV");
         romanMap.put(5, "V");
@@ -51,12 +15,49 @@ public class NumberService {
         romanMap.put(50, "L");
         romanMap.put(90, "XC");
         romanMap.put(100, "C");
-
-        return romanMap;
     }
 
-    public static String toRomanNumber(int number) {
-        TreeMap<Integer, String> romanMap = getRomanMap();
+    static Number parseAndValidate(String symbol) throws Exception {
+
+        int value;
+        NumberType type;
+
+        try {
+            value = Integer.parseInt(symbol);
+            type = NumberType.ARABIC;
+        }catch (NumberFormatException e) {
+            value = toArabicNumber(symbol);
+            type = NumberType.ROMAN;
+        }
+
+        if (value < 1 || value > 10) {
+            throw new Exception("Value is not true");
+        }
+
+        return new Number(value, type);
+    }
+
+    static Number parseAndValidate(String symbol, NumberType type) throws Exception {
+
+        Number number = parseAndValidate(symbol);
+        if (number.getType() != type) {
+            throw new Exception("numbers of different types");
+        }
+
+        return number;
+    }
+
+    private static int letterToNumber(char letter) {
+
+        int result = -1;
+
+        for (Map.Entry<Integer, String> entry: romanMap.entrySet()) {
+            if (entry.getValue().equals(String.valueOf(letter))) result = entry.getKey();
+        }
+        return result;
+    }
+
+    static String toRomanNumber(int number) {
 
         int i = romanMap.floorKey(number);
 
@@ -66,20 +67,27 @@ public class NumberService {
         return romanMap.get(i) + toRomanNumber(number - i);
     }
 
-    public static int toArabicNumber(String roman) throws Exception {
+    static int toArabicNumber(String roman) throws Exception {
         int result = 0;
 
-        TreeMap<Integer, String> romanMap = getRomanMap();
+        int i = 0;
+        while (i < roman.length()) {
+            char letter = roman.charAt(i);
+            int num = letterToNumber(letter);
 
-        for (Map.Entry<Integer, String> entry : romanMap.entrySet()) {
-            if (roman.startsWith(entry.getValue())) {
-                result += entry.getKey();
-                roman = roman.substring(entry.getValue().length());
+            if (num < 0) throw new Exception("Illegal character in roman.");
+
+            i++;
+            if (i == roman.length()) {
+                result += num;
+            }else {
+                int nextNum = letterToNumber(roman.charAt(i));
+                if(nextNum > num) {
+                    result += (nextNum - num);
+                    i++;
+                }
+                else result += num;
             }
-        }
-
-        if (roman.length() > 0) {
-            throw new Exception(roman + " cannot be converted to a Roman");
         }
 
         return result;
